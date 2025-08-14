@@ -60,44 +60,48 @@
         </div>
     </div>
 
-    <script>
-        // Replace with your OpenWeatherMap API Key
-        const API_KEY = 'af67abf9cdca341e7f6dd81a2a256145';
+       <script>
+    const API_ENDPOINT = 'https://fr6icgcbhj.execute-api.eu-west-1.amazonaws.com/prod/weather';
 
-        document.getElementById('weatherForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const location = document.getElementById('locationInput').value;
+    document.getElementById('weatherForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const location = document.getElementById('locationInput').value.trim();
 
-            try {
-                const response = await fetch(
-                    `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${API_KEY}`
-                );
+        try {
+            const response = await fetch(`${API_ENDPOINT}?city=${encodeURIComponent(location)}`, {
+                mode: 'cors'
+            });
 
-                if (!response.ok) {
-                    throw new Error('City not found');
-                }
+            const responseData = await response.json();
 
-                const data = await response.json();
-                displayWeather(data);
-
-            } catch (error) {
-                alert(error.message);
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Unknown error');
             }
-        });
 
-        function displayWeather(data) {
-            const weatherInfo = document.getElementById('weatherInfo');
-            weatherInfo.classList.remove('d-none');
+            displayWeather(responseData);
 
-            document.getElementById('cityName').textContent = `${data.name}, ${data.sys.country}`;
-            document.getElementById('temperature').textContent = `${Math.round(data.main.temp)}°C`;
-            document.getElementById('weatherDescription').textContent = data.weather[0].description;
-            document.getElementById('humidity').textContent = data.main.humidity;
-            document.getElementById('windSpeed').textContent = data.wind.speed;
-
-            const iconCode = data.weather[0].icon;
-            document.getElementById('weatherIcon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert(`Error: ${error.message}`);
         }
-    </script>
+    });
+
+    // Add this missing function
+    function displayWeather(data) {
+        const weatherInfo = document.getElementById('weatherInfo');
+        weatherInfo.classList.remove('d-none');
+
+        // Update DOM elements with weather data
+        document.getElementById('cityName').textContent = `${data.name}, ${data.sys.country}`;
+        document.getElementById('temperature').textContent = `${Math.round(data.main.temp)}°C`;
+        document.getElementById('weatherDescription').textContent = data.weather[0].description;
+        document.getElementById('humidity').textContent = data.main.humidity;
+        document.getElementById('windSpeed').textContent = data.wind.speed;
+
+        // Set weather icon
+        const iconCode = data.weather[0].icon;
+        document.getElementById('weatherIcon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    }
+</script>
 </body>
 </html>
